@@ -1,0 +1,399 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>numpy.core.getlimits &mdash; code-lab.opencv 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="code-lab.opencv 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="numpy" href="../../numpy.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">code-lab.opencv 1.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../numpy.html" accesskey="U">numpy</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for numpy.core.getlimits</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Machine limits for Float32 and Float64 and (long double) if available...</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;finfo&#39;</span><span class="p">,</span> <span class="s">&#39;iinfo&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">.machar</span> <span class="kn">import</span> <span class="n">MachAr</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">numeric</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">numerictypes</span> <span class="k">as</span> <span class="n">ntypes</span>
+<span class="kn">from</span> <span class="nn">.numeric</span> <span class="kn">import</span> <span class="n">array</span>
+
+<span class="k">def</span> <span class="nf">_frz</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;fix rank-0 --&gt; rank-1&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
+    <span class="k">return</span> <span class="n">a</span>
+
+<span class="n">_convert_to_float</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">ntypes</span><span class="o">.</span><span class="n">csingle</span><span class="p">:</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">single</span><span class="p">,</span>
+    <span class="n">ntypes</span><span class="o">.</span><span class="n">complex_</span><span class="p">:</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">float_</span><span class="p">,</span>
+    <span class="n">ntypes</span><span class="o">.</span><span class="n">clongfloat</span><span class="p">:</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">longfloat</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="finfo"><a class="viewcode-back" href="../../../index.html#numpy.finfo">[docs]</a><span class="k">class</span> <span class="nc">finfo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    finfo(dtype)</span>
+
+<span class="sd">    Machine limits for floating point types.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    eps : float</span>
+<span class="sd">        The smallest representable positive number such that</span>
+<span class="sd">        ``1.0 + eps != 1.0``.  Type of `eps` is an appropriate floating</span>
+<span class="sd">        point type.</span>
+<span class="sd">    epsneg : floating point number of the appropriate type</span>
+<span class="sd">        The smallest representable positive number such that</span>
+<span class="sd">        ``1.0 - epsneg != 1.0``.</span>
+<span class="sd">    iexp : int</span>
+<span class="sd">        The number of bits in the exponent portion of the floating point</span>
+<span class="sd">        representation.</span>
+<span class="sd">    machar : MachAr</span>
+<span class="sd">        The object which calculated these parameters and holds more</span>
+<span class="sd">        detailed information.</span>
+<span class="sd">    machep : int</span>
+<span class="sd">        The exponent that yields `eps`.</span>
+<span class="sd">    max : floating point number of the appropriate type</span>
+<span class="sd">        The largest representable number.</span>
+<span class="sd">    maxexp : int</span>
+<span class="sd">        The smallest positive power of the base (2) that causes overflow.</span>
+<span class="sd">    min : floating point number of the appropriate type</span>
+<span class="sd">        The smallest representable number, typically ``-max``.</span>
+<span class="sd">    minexp : int</span>
+<span class="sd">        The most negative power of the base (2) consistent with there</span>
+<span class="sd">        being no leading 0&#39;s in the mantissa.</span>
+<span class="sd">    negep : int</span>
+<span class="sd">        The exponent that yields `epsneg`.</span>
+<span class="sd">    nexp : int</span>
+<span class="sd">        The number of bits in the exponent including its sign and bias.</span>
+<span class="sd">    nmant : int</span>
+<span class="sd">        The number of bits in the mantissa.</span>
+<span class="sd">    precision : int</span>
+<span class="sd">        The approximate number of decimal digits to which this kind of</span>
+<span class="sd">        float is precise.</span>
+<span class="sd">    resolution : floating point number of the appropriate type</span>
+<span class="sd">        The approximate decimal resolution of this type, i.e.,</span>
+<span class="sd">        ``10**-precision``.</span>
+<span class="sd">    tiny : float</span>
+<span class="sd">        The smallest positive usable number.  Type of `tiny` is an</span>
+<span class="sd">        appropriate floating point type.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dtype : float, dtype, or instance</span>
+<span class="sd">        Kind of floating point data-type about which to get information.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    MachAr : The implementation of the tests that produce this information.</span>
+<span class="sd">    iinfo : The equivalent for integer data types.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For developers of NumPy: do not instantiate this at the module level.</span>
+<span class="sd">    The initial calculation of these parameters is expensive and negatively</span>
+<span class="sd">    impacts import times.  These objects are cached, so calling ``finfo()``</span>
+<span class="sd">    repeatedly inside your functions is not a problem.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_finfo_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">numeric</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="c"># In case a float instance was given</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">numeric</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_finfo_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj</span>
+        <span class="n">dtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">dtype</span><span class="p">]</span>
+        <span class="n">newdtype</span> <span class="o">=</span> <span class="n">numeric</span><span class="o">.</span><span class="n">obj2sctype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">newdtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">dtype</span><span class="p">:</span>
+            <span class="n">dtypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newdtype</span><span class="p">)</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">newdtype</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">numeric</span><span class="o">.</span><span class="n">inexact</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;data type </span><span class="si">%r</span><span class="s"> not inexact&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dtype</span><span class="p">))</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_finfo_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">numeric</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
+            <span class="n">newdtype</span> <span class="o">=</span> <span class="n">_convert_to_float</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">newdtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">dtype</span><span class="p">:</span>
+                <span class="n">dtypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newdtype</span><span class="p">)</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">newdtype</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_finfo_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">_init</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">_finfo_cache</span><span class="p">[</span><span class="n">dt</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">numeric</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">double</span><span class="p">:</span>
+            <span class="n">itype</span> <span class="o">=</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">int64</span>
+            <span class="n">fmt</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%24.16e</span><span class="s">&#39;</span>
+            <span class="n">precname</span> <span class="o">=</span> <span class="s">&#39;double&#39;</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">single</span><span class="p">:</span>
+            <span class="n">itype</span> <span class="o">=</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">int32</span>
+            <span class="n">fmt</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%15.7e</span><span class="s">&#39;</span>
+            <span class="n">precname</span> <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">longdouble</span><span class="p">:</span>
+            <span class="n">itype</span> <span class="o">=</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">longlong</span>
+            <span class="n">fmt</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+            <span class="n">precname</span> <span class="o">=</span> <span class="s">&#39;long double&#39;</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">half</span><span class="p">:</span>
+            <span class="n">itype</span> <span class="o">=</span> <span class="n">ntypes</span><span class="o">.</span><span class="n">int16</span>
+            <span class="n">fmt</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%12.5e</span><span class="s">&#39;</span>
+            <span class="n">precname</span> <span class="o">=</span> <span class="s">&#39;half&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span>
+
+        <span class="n">machar</span> <span class="o">=</span> <span class="n">MachAr</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span><span class="n">array</span><span class="p">([</span><span class="n">v</span><span class="p">],</span> <span class="n">dtype</span><span class="p">),</span>
+                        <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span><span class="n">_frz</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">itype</span><span class="p">))[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span><span class="n">array</span><span class="p">(</span><span class="n">_frz</span><span class="p">(</span><span class="n">v</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="p">),</span>
+                        <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">fmt</span> <span class="o">%</span> <span class="n">array</span><span class="p">(</span><span class="n">_frz</span><span class="p">(</span><span class="n">v</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="p">),</span>
+                        <span class="s">&#39;numpy </span><span class="si">%s</span><span class="s"> precision floating point number&#39;</span> <span class="o">%</span> <span class="n">precname</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;precision&#39;</span><span class="p">,</span> <span class="s">&#39;iexp&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;maxexp&#39;</span><span class="p">,</span> <span class="s">&#39;minexp&#39;</span><span class="p">,</span> <span class="s">&#39;negep&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;machep&#39;</span><span class="p">]:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">machar</span><span class="p">,</span> <span class="n">word</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;tiny&#39;</span><span class="p">,</span> <span class="s">&#39;resolution&#39;</span><span class="p">,</span> <span class="s">&#39;epsneg&#39;</span><span class="p">]:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">machar</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">huge</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">eps</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nexp</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">iexp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nmant</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">machar</span> <span class="o">=</span> <span class="n">machar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_str_tiny</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">_str_xmin</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_str_max</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">_str_xmax</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_str_epsneg</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">_str_epsneg</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_str_eps</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">_str_eps</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_str_resolution</span> <span class="o">=</span> <span class="n">machar</span><span class="o">.</span><span class="n">_str_resolution</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="s">Machine parameters for </span><span class="si">%(dtype)s</span><span class="s"></span>
+<span class="s">---------------------------------------------------------------------</span>
+<span class="s">precision=</span><span class="si">%(precision)3s</span><span class="s">   resolution= </span><span class="si">%(_str_resolution)s</span><span class="s"></span>
+<span class="s">machep=</span><span class="si">%(machep)6s</span><span class="s">   eps=        </span><span class="si">%(_str_eps)s</span><span class="s"></span>
+<span class="s">negep =</span><span class="si">%(negep)6s</span><span class="s">   epsneg=     </span><span class="si">%(_str_epsneg)s</span><span class="s"></span>
+<span class="s">minexp=</span><span class="si">%(minexp)6s</span><span class="s">   tiny=       </span><span class="si">%(_str_tiny)s</span><span class="s"></span>
+<span class="s">maxexp=</span><span class="si">%(maxexp)6s</span><span class="s">   max=        </span><span class="si">%(_str_max)s</span><span class="s"></span>
+<span class="s">nexp  =</span><span class="si">%(nexp)6s</span><span class="s">   min=        -max</span>
+<span class="s">---------------------------------------------------------------------</span>
+<span class="s">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s">&#39;klass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s">&quot;</span><span class="si">%(klass)s</span><span class="s">(resolution=</span><span class="si">%(resolution)s</span><span class="s">, min=-</span><span class="si">%(_str_max)s</span><span class="s">,&quot;</span> \
+               <span class="o">+</span> <span class="s">&quot; max=</span><span class="si">%(_str_max)s</span><span class="s">, dtype=</span><span class="si">%(dtype)s</span><span class="s">)&quot;</span><span class="p">)</span> \
+                <span class="o">%</span> <span class="n">d</span>
+
+</div>
+<div class="viewcode-block" id="iinfo"><a class="viewcode-back" href="../../../index.html#numpy.iinfo">[docs]</a><span class="k">class</span> <span class="nc">iinfo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    iinfo(type)</span>
+
+<span class="sd">    Machine limits for integer types.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    min : int</span>
+<span class="sd">        The smallest integer expressible by the type.</span>
+<span class="sd">    max : int</span>
+<span class="sd">        The largest integer expressible by the type.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    type : integer type, dtype, or instance</span>
+<span class="sd">        The kind of integer data type to get information about.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    finfo : The equivalent for floating point data types.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    With types:</span>
+
+<span class="sd">    &gt;&gt;&gt; ii16 = np.iinfo(np.int16)</span>
+<span class="sd">    &gt;&gt;&gt; ii16.min</span>
+<span class="sd">    -32768</span>
+<span class="sd">    &gt;&gt;&gt; ii16.max</span>
+<span class="sd">    32767</span>
+<span class="sd">    &gt;&gt;&gt; ii32 = np.iinfo(np.int32)</span>
+<span class="sd">    &gt;&gt;&gt; ii32.min</span>
+<span class="sd">    -2147483648</span>
+<span class="sd">    &gt;&gt;&gt; ii32.max</span>
+<span class="sd">    2147483647</span>
+
+<span class="sd">    With instances:</span>
+
+<span class="sd">    &gt;&gt;&gt; ii32 = np.iinfo(np.int32(10))</span>
+<span class="sd">    &gt;&gt;&gt; ii32.min</span>
+<span class="sd">    -2147483648</span>
+<span class="sd">    &gt;&gt;&gt; ii32.max</span>
+<span class="sd">    2147483647</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_min_vals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_max_vals</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">int_type</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">numeric</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">int_type</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">numeric</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">int_type</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">*</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="s">&#39;iu&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Invalid integer data type.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Minimum value of given dtype.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;u&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">iinfo</span><span class="o">.</span><span class="n">_min_vals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+                <span class="n">iinfo</span><span class="o">.</span><span class="n">_min_vals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nb">min</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="nb">min</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maximum value of given dtype.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">iinfo</span><span class="o">.</span><span class="n">_max_vals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;u&#39;</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">iinfo</span><span class="o">.</span><span class="n">_max_vals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nb">max</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="nb">max</span><span class="p">)</span>
+
+<div class="viewcode-block" id="iinfo.__str__"><a class="viewcode-back" href="../../../index.html#numpy.iinfo.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="s">Machine parameters for </span><span class="si">%(dtype)s</span><span class="s"></span>
+<span class="s">---------------------------------------------------------------------</span>
+<span class="s">min = </span><span class="si">%(min)s</span><span class="s"></span>
+<span class="s">max = </span><span class="si">%(max)s</span><span class="s"></span>
+<span class="s">---------------------------------------------------------------------</span>
+<span class="s">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;dtype&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="s">&#39;min&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="s">&#39;max&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">}</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">(min=</span><span class="si">%s</span><span class="s">, max=</span><span class="si">%s</span><span class="s">, dtype=</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">finfo</span><span class="p">(</span><span class="n">ntypes</span><span class="o">.</span><span class="n">single</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;single epsilon:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;single tiny:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">tiny</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">finfo</span><span class="p">(</span><span class="n">ntypes</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;float epsilon:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;float tiny:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">tiny</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">finfo</span><span class="p">(</span><span class="n">ntypes</span><span class="o">.</span><span class="n">longfloat</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;longfloat epsilon:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;longfloat tiny:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">tiny</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Rich Adams.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

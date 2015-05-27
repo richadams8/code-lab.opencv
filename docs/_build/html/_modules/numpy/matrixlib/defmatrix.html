@@ -1,0 +1,1187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>numpy.matrixlib.defmatrix &mdash; code-lab.opencv 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="code-lab.opencv 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="numpy" href="../../numpy.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">code-lab.opencv 1.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../numpy.html" accesskey="U">numpy</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for numpy.matrixlib.defmatrix</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;matrix&#39;</span><span class="p">,</span> <span class="s">&#39;bmat&#39;</span><span class="p">,</span> <span class="s">&#39;mat&#39;</span><span class="p">,</span> <span class="s">&#39;asmatrix&#39;</span><span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy.core.numeric</span> <span class="kn">as</span> <span class="nn">N</span>
+<span class="kn">from</span> <span class="nn">numpy.core.numeric</span> <span class="kn">import</span> <span class="n">concatenate</span><span class="p">,</span> <span class="n">isscalar</span><span class="p">,</span> <span class="n">binary_repr</span><span class="p">,</span> <span class="n">identity</span><span class="p">,</span> <span class="n">asanyarray</span>
+<span class="kn">from</span> <span class="nn">numpy.core.numerictypes</span> <span class="kn">import</span> <span class="n">issubdtype</span>
+
+<span class="c"># make translation table</span>
+<span class="n">_numchars</span> <span class="o">=</span> <span class="s">&#39;0123456789.-+jeEL&#39;</span>
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+    <span class="k">class</span> <span class="nc">_NumCharTable</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">chr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_numchars</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">_table</span> <span class="o">=</span> <span class="n">_NumCharTable</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="n">astr</span><span class="p">):</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="n">astr</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">_table</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">str_</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Invalid data string supplied: &quot;</span> <span class="o">+</span> <span class="n">astr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">_table</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="mi">256</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">256</span><span class="p">):</span>
+        <span class="n">_table</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="n">_table</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_table</span><span class="p">)</span>
+
+    <span class="n">_todelete</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_table</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_numchars</span><span class="p">:</span>
+            <span class="n">_todelete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="n">_todelete</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_todelete</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">k</span>
+
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="n">astr</span><span class="p">):</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="n">astr</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">_table</span><span class="p">,</span> <span class="n">_todelete</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">str_</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Invalid data string supplied: &quot;</span> <span class="o">+</span> <span class="n">astr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_convert_from_string</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
+    <span class="n">newdata</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">trow</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">newrow</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">trow</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">newrow</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_eval</span><span class="p">,</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">Ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newrow</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">newrow</span><span class="p">)</span> <span class="o">!=</span> <span class="n">Ncols</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Rows not the same size.&quot;</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">newdata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newrow</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">newdata</span>
+
+<div class="viewcode-block" id="asmatrix"><a class="viewcode-back" href="../../../index.html#numpy.asmatrix">[docs]</a><span class="k">def</span> <span class="nf">asmatrix</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interpret the input as a matrix.</span>
+
+<span class="sd">    Unlike `matrix`, `asmatrix` does not make a copy if the input is already</span>
+<span class="sd">    a matrix or an ndarray.  Equivalent to ``matrix(data, copy=False)``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : array_like</span>
+<span class="sd">        Input data.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mat : matrix</span>
+<span class="sd">        `data` interpreted as a matrix.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; x = np.array([[1, 2], [3, 4]])</span>
+
+<span class="sd">    &gt;&gt;&gt; m = np.asmatrix(x)</span>
+
+<span class="sd">    &gt;&gt;&gt; x[0,0] = 5</span>
+
+<span class="sd">    &gt;&gt;&gt; m</span>
+<span class="sd">    matrix([[5, 2],</span>
+<span class="sd">            [3, 4]])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">matrix</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</div>
+<span class="k">def</span> <span class="nf">matrix_power</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raise a square matrix to the (integer) power `n`.</span>
+
+<span class="sd">    For positive integers `n`, the power is computed by repeated matrix</span>
+<span class="sd">    squarings and matrix multiplications. If ``n == 0``, the identity matrix</span>
+<span class="sd">    of the same shape as M is returned. If ``n &lt; 0``, the inverse</span>
+<span class="sd">    is computed and then raised to the ``abs(n)``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    M : ndarray or matrix object</span>
+<span class="sd">        Matrix to be &quot;powered.&quot;  Must be square, i.e. ``M.shape == (m, m)``,</span>
+<span class="sd">        with `m` a positive integer.</span>
+<span class="sd">    n : int</span>
+<span class="sd">        The exponent can be any integer or long integer, positive,</span>
+<span class="sd">        negative, or zero.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    M**n : ndarray or matrix object</span>
+<span class="sd">        The return value is the same shape and type as `M`;</span>
+<span class="sd">        if the exponent is positive or zero then the type of the</span>
+<span class="sd">        elements is the same as those of `M`. If the exponent is</span>
+<span class="sd">        negative the elements are floating-point.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    LinAlgError</span>
+<span class="sd">        If the matrix is not numerically invertible.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    matrix</span>
+<span class="sd">        Provides an equivalent function as the exponentiation operator</span>
+<span class="sd">        (``**``, not ``^``).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from numpy import linalg as LA</span>
+<span class="sd">    &gt;&gt;&gt; i = np.array([[0, 1], [-1, 0]]) # matrix equiv. of the imaginary unit</span>
+<span class="sd">    &gt;&gt;&gt; LA.matrix_power(i, 3) # should = -i</span>
+<span class="sd">    array([[ 0, -1],</span>
+<span class="sd">           [ 1,  0]])</span>
+<span class="sd">    &gt;&gt;&gt; LA.matrix_power(np.matrix(i), 3) # matrix arg returns matrix</span>
+<span class="sd">    matrix([[ 0, -1],</span>
+<span class="sd">            [ 1,  0]])</span>
+<span class="sd">    &gt;&gt;&gt; LA.matrix_power(i, 0)</span>
+<span class="sd">    array([[1, 0],</span>
+<span class="sd">           [0, 1]])</span>
+<span class="sd">    &gt;&gt;&gt; LA.matrix_power(i, -3) # should = 1/(-i) = i, but w/ f.p. elements</span>
+<span class="sd">    array([[ 0.,  1.],</span>
+<span class="sd">           [-1.,  0.]])</span>
+
+<span class="sd">    Somewhat more sophisticated example</span>
+
+<span class="sd">    &gt;&gt;&gt; q = np.zeros((4, 4))</span>
+<span class="sd">    &gt;&gt;&gt; q[0:2, 0:2] = -i</span>
+<span class="sd">    &gt;&gt;&gt; q[2:4, 2:4] = i</span>
+<span class="sd">    &gt;&gt;&gt; q # one of the three quarternion units not equal to 1</span>
+<span class="sd">    array([[ 0., -1.,  0.,  0.],</span>
+<span class="sd">           [ 1.,  0.,  0.,  0.],</span>
+<span class="sd">           [ 0.,  0.,  0.,  1.],</span>
+<span class="sd">           [ 0.,  0., -1.,  0.]])</span>
+<span class="sd">    &gt;&gt;&gt; LA.matrix_power(q, 2) # = -np.eye(4)</span>
+<span class="sd">    array([[-1.,  0.,  0.,  0.],</span>
+<span class="sd">           [ 0., -1.,  0.,  0.],</span>
+<span class="sd">           [ 0.,  0., -1.,  0.],</span>
+<span class="sd">           [ 0.,  0.,  0., -1.]])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="n">asanyarray</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;input must be a square array&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">issubdtype</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;exponent must be an integer&quot;</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">inv</span>
+
+    <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">M</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">identity</span><span class="p">(</span><span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">M</span>
+    <span class="k">elif</span> <span class="n">n</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">inv</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">M</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">=</span><span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="c"># binary decomposition to reduce the number of Matrix</span>
+    <span class="c"># multiplications for n &gt; 3.</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">binary_repr</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">Z</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">M</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">beta</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="n">q</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;0&#39;</span><span class="p">:</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">Z</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">q</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">beta</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;1&#39;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="matrix"><a class="viewcode-back" href="../../../index.html#numpy.matrix">[docs]</a><span class="k">class</span> <span class="nc">matrix</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    matrix(data, dtype=None, copy=True)</span>
+
+<span class="sd">    Returns a matrix from an array-like object, or from a string of data.</span>
+<span class="sd">    A matrix is a specialized 2-D array that retains its 2-D nature</span>
+<span class="sd">    through operations.  It has certain special operators, such as ``*``</span>
+<span class="sd">    (matrix multiplication) and ``**`` (matrix power).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : array_like or string</span>
+<span class="sd">       If `data` is a string, it is interpreted as a matrix with commas</span>
+<span class="sd">       or spaces separating columns, and semicolons separating rows.</span>
+<span class="sd">    dtype : data-type</span>
+<span class="sd">       Data-type of the output matrix.</span>
+<span class="sd">    copy : bool</span>
+<span class="sd">       If `data` is already an `ndarray`, then this flag determines</span>
+<span class="sd">       whether the data is copied (the default), or whether a view is</span>
+<span class="sd">       constructed.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    array</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; a = np.matrix(&#39;1 2; 3 4&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; print a</span>
+<span class="sd">    [[1 2]</span>
+<span class="sd">     [3 4]]</span>
+
+<span class="sd">    &gt;&gt;&gt; np.matrix([[1, 2], [3, 4]])</span>
+<span class="sd">    matrix([[1, 2],</span>
+<span class="sd">            [3, 4]])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mf">10.0</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">subtype</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
+            <span class="n">dtype2</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">):</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype2</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">dtype2</span> <span class="o">==</span> <span class="n">dtype</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">copy</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">data</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">intype</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">intype</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">subtype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">intype</span> <span class="o">!=</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">intype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">copy</span><span class="p">:</span> <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">new</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">_convert_from_string</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="c"># now convert data to an array</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;matrix must be 2-dimensional&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">order</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">fortran</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">order</span> <span class="ow">or</span> <span class="n">arr</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">contiguous</span><span class="p">):</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">subtype</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+                                <span class="nb">buffer</span><span class="o">=</span><span class="n">arr</span><span class="p">,</span>
+                                <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">__array_finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_getitem</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">matrix</span><span class="p">)</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">_getitem</span><span class="p">):</span> <span class="k">return</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">newshape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newshape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">newshape</span>
+                <span class="k">return</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;shape too large to be a matrix.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newshape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">newshape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_getitem</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getitem</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">out</span><span class="p">[()]</span>
+        <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">sh</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c"># Determine when we should have a column array</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">isscalar</span><span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">sh</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">sh</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="p">:</span>
+            <span class="c"># This promotes 1-D vectors to row vectors</span>
+            <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asmatrix</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">isscalar</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s">&#39;__rmul__&#39;</span><span class="p">)</span> <span class="p">:</span>
+            <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">NotImplemented</span>
+
+    <span class="k">def</span> <span class="nf">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__imul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span> <span class="o">*</span> <span class="n">other</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">matrix_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ipow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span> <span class="o">**</span> <span class="n">other</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__rpow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">NotImplemented</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__array__</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;array&#39;</span><span class="p">,</span> <span class="s">&#39;matrix&#39;</span><span class="p">)</span>
+        <span class="c"># now, &#39;matrix&#39; has 6 letters, and &#39;array&#39; 5, so the columns don&#39;t</span>
+        <span class="c"># line up anymore. We need to add a space.</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__array__</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A convenience function for operations that need to preserve axis</span>
+<span class="sd">        orientation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">axis</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">elif</span> <span class="n">axis</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;unsupported axis&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_collapse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A convenience function for operations that want to collapse</span>
+<span class="sd">        to a scalar like _align, but are using keepdims=True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="c"># Necessary because base-class tolist expects dimension</span>
+    <span class="c">#  reduction by x[0]</span>
+<div class="viewcode-block" id="matrix.tolist"><a class="viewcode-back" href="../../../index.html#numpy.matrix.tolist">[docs]</a>    <span class="k">def</span> <span class="nf">tolist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the matrix as a (possibly nested) list.</span>
+
+<span class="sd">        See `ndarray.tolist` for full documentation.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        ndarray.tolist</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.tolist()</span>
+<span class="sd">        [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__array__</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="c"># To preserve orientation of result...</span></div>
+<div class="viewcode-block" id="matrix.sum"><a class="viewcode-back" href="../../../index.html#numpy.matrix.sum">[docs]</a>    <span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the sum of the matrix elements, along the given axis.</span>
+
+<span class="sd">        Refer to `numpy.sum` for full documentation.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.sum</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is the same as `ndarray.sum`, except that where an `ndarray` would</span>
+<span class="sd">        be returned, a `matrix` object is returned instead.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix([[1, 2], [4, 3]])</span>
+<span class="sd">        &gt;&gt;&gt; x.sum()</span>
+<span class="sd">        10</span>
+<span class="sd">        &gt;&gt;&gt; x.sum(axis=1)</span>
+<span class="sd">        matrix([[3],</span>
+<span class="sd">                [7]])</span>
+<span class="sd">        &gt;&gt;&gt; x.sum(axis=1, dtype=&#39;float&#39;)</span>
+<span class="sd">        matrix([[ 3.],</span>
+<span class="sd">                [ 7.]])</span>
+<span class="sd">        &gt;&gt;&gt; out = np.zeros((1, 2), dtype=&#39;float&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; x.sum(axis=1, dtype=&#39;float&#39;, out=out)</span>
+<span class="sd">        matrix([[ 3.],</span>
+<span class="sd">                [ 7.]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.mean"><a class="viewcode-back" href="../../../index.html#numpy.matrix.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the average of the matrix elements along the given axis.</span>
+
+<span class="sd">        Refer to `numpy.mean` for full documentation.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.mean</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Same as `ndarray.mean` except that, where that returns an `ndarray`,</span>
+<span class="sd">        this returns a `matrix` object.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3, 4)))</span>
+<span class="sd">        &gt;&gt;&gt; x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.mean()</span>
+<span class="sd">        5.5</span>
+<span class="sd">        &gt;&gt;&gt; x.mean(0)</span>
+<span class="sd">        matrix([[ 4.,  5.,  6.,  7.]])</span>
+<span class="sd">        &gt;&gt;&gt; x.mean(1)</span>
+<span class="sd">        matrix([[ 1.5],</span>
+<span class="sd">                [ 5.5],</span>
+<span class="sd">                [ 9.5]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.std"><a class="viewcode-back" href="../../../index.html#numpy.matrix.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the standard deviation of the array elements along the given axis.</span>
+
+<span class="sd">        Refer to `numpy.std` for full documentation.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.std</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is the same as `ndarray.std`, except that where an `ndarray` would</span>
+<span class="sd">        be returned, a `matrix` object is returned instead.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3, 4)))</span>
+<span class="sd">        &gt;&gt;&gt; x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.std()</span>
+<span class="sd">        3.4520525295346629</span>
+<span class="sd">        &gt;&gt;&gt; x.std(0)</span>
+<span class="sd">        matrix([[ 3.26598632,  3.26598632,  3.26598632,  3.26598632]])</span>
+<span class="sd">        &gt;&gt;&gt; x.std(1)</span>
+<span class="sd">        matrix([[ 1.11803399],</span>
+<span class="sd">                [ 1.11803399],</span>
+<span class="sd">                [ 1.11803399]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">ddof</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.var"><a class="viewcode-back" href="../../../index.html#numpy.matrix.var">[docs]</a>    <span class="k">def</span> <span class="nf">var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the variance of the matrix elements, along the given axis.</span>
+
+<span class="sd">        Refer to `numpy.var` for full documentation.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.var</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is the same as `ndarray.var`, except that where an `ndarray` would</span>
+<span class="sd">        be returned, a `matrix` object is returned instead.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3, 4)))</span>
+<span class="sd">        &gt;&gt;&gt; x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.var()</span>
+<span class="sd">        11.916666666666666</span>
+<span class="sd">        &gt;&gt;&gt; x.var(0)</span>
+<span class="sd">        matrix([[ 10.66666667,  10.66666667,  10.66666667,  10.66666667]])</span>
+<span class="sd">        &gt;&gt;&gt; x.var(1)</span>
+<span class="sd">        matrix([[ 1.25],</span>
+<span class="sd">                [ 1.25],</span>
+<span class="sd">                [ 1.25]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">ddof</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.prod"><a class="viewcode-back" href="../../../index.html#numpy.matrix.prod">[docs]</a>    <span class="k">def</span> <span class="nf">prod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the product of the array elements over the given axis.</span>
+
+<span class="sd">        Refer to `prod` for full documentation.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        prod, ndarray.prod</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Same as `ndarray.prod`, except, where that returns an `ndarray`, this</span>
+<span class="sd">        returns a `matrix` object instead.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.prod()</span>
+<span class="sd">        0</span>
+<span class="sd">        &gt;&gt;&gt; x.prod(0)</span>
+<span class="sd">        matrix([[  0,  45, 120, 231]])</span>
+<span class="sd">        &gt;&gt;&gt; x.prod(1)</span>
+<span class="sd">        matrix([[   0],</span>
+<span class="sd">                [ 840],</span>
+<span class="sd">                [7920]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.any"><a class="viewcode-back" href="../../../index.html#numpy.matrix.any">[docs]</a>    <span class="k">def</span> <span class="nf">any</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Test whether any array element along a given axis evaluates to True.</span>
+
+<span class="sd">        Refer to `numpy.any` for full documentation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        axis : int, optional</span>
+<span class="sd">            Axis along which logical OR is performed</span>
+<span class="sd">        out : ndarray, optional</span>
+<span class="sd">            Output to existing array instead of creating new one, must have</span>
+<span class="sd">            same shape as expected output</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            any : bool, ndarray</span>
+<span class="sd">                Returns a single bool if `axis` is ``None``; otherwise,</span>
+<span class="sd">                returns `ndarray`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.all"><a class="viewcode-back" href="../../../index.html#numpy.matrix.all">[docs]</a>    <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Test whether all matrix elements along a given axis evaluate to True.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See `numpy.all` for complete descriptions</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.all</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is the same as `ndarray.all`, but it returns a `matrix` object.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; y = x[0]; y</span>
+<span class="sd">        matrix([[0, 1, 2, 3]])</span>
+<span class="sd">        &gt;&gt;&gt; (x == y)</span>
+<span class="sd">        matrix([[ True,  True,  True,  True],</span>
+<span class="sd">                [False, False, False, False],</span>
+<span class="sd">                [False, False, False, False]], dtype=bool)</span>
+<span class="sd">        &gt;&gt;&gt; (x == y).all()</span>
+<span class="sd">        False</span>
+<span class="sd">        &gt;&gt;&gt; (x == y).all(0)</span>
+<span class="sd">        matrix([[False, False, False, False]], dtype=bool)</span>
+<span class="sd">        &gt;&gt;&gt; (x == y).all(1)</span>
+<span class="sd">        matrix([[ True],</span>
+<span class="sd">                [False],</span>
+<span class="sd">                [False]], dtype=bool)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.max"><a class="viewcode-back" href="../../../index.html#numpy.matrix.max">[docs]</a>    <span class="k">def</span> <span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the maximum value along an axis.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See `amax` for complete descriptions</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        amax, ndarray.max</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is the same as `ndarray.max`, but returns a `matrix` object</span>
+<span class="sd">        where `ndarray.max` would return an ndarray.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.max()</span>
+<span class="sd">        11</span>
+<span class="sd">        &gt;&gt;&gt; x.max(0)</span>
+<span class="sd">        matrix([[ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.max(1)</span>
+<span class="sd">        matrix([[ 3],</span>
+<span class="sd">                [ 7],</span>
+<span class="sd">                [11]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.argmax"><a class="viewcode-back" href="../../../index.html#numpy.matrix.argmax">[docs]</a>    <span class="k">def</span> <span class="nf">argmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Indices of the maximum values along an axis.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See `numpy.argmax` for complete descriptions</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.argmax</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is the same as `ndarray.argmax`, but returns a `matrix` object</span>
+<span class="sd">        where `ndarray.argmax` would return an `ndarray`.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.argmax()</span>
+<span class="sd">        11</span>
+<span class="sd">        &gt;&gt;&gt; x.argmax(0)</span>
+<span class="sd">        matrix([[2, 2, 2, 2]])</span>
+<span class="sd">        &gt;&gt;&gt; x.argmax(1)</span>
+<span class="sd">        matrix([[3],</span>
+<span class="sd">                [3],</span>
+<span class="sd">                [3]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">_align</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.min"><a class="viewcode-back" href="../../../index.html#numpy.matrix.min">[docs]</a>    <span class="k">def</span> <span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the minimum value along an axis.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See `amin` for complete descriptions.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        amin, ndarray.min</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is the same as `ndarray.min`, but returns a `matrix` object</span>
+<span class="sd">        where `ndarray.min` would return an ndarray.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = -np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[  0,  -1,  -2,  -3],</span>
+<span class="sd">                [ -4,  -5,  -6,  -7],</span>
+<span class="sd">                [ -8,  -9, -10, -11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.min()</span>
+<span class="sd">        -11</span>
+<span class="sd">        &gt;&gt;&gt; x.min(0)</span>
+<span class="sd">        matrix([[ -8,  -9, -10, -11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.min(1)</span>
+<span class="sd">        matrix([[ -3],</span>
+<span class="sd">                [ -7],</span>
+<span class="sd">                [-11]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">_collapse</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.argmin"><a class="viewcode-back" href="../../../index.html#numpy.matrix.argmin">[docs]</a>    <span class="k">def</span> <span class="nf">argmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the indices of the minimum values along an axis.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See `numpy.argmin` for complete descriptions.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.argmin</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is the same as `ndarray.argmin`, but returns a `matrix` object</span>
+<span class="sd">        where `ndarray.argmin` would return an `ndarray`.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = -np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[  0,  -1,  -2,  -3],</span>
+<span class="sd">                [ -4,  -5,  -6,  -7],</span>
+<span class="sd">                [ -8,  -9, -10, -11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.argmin()</span>
+<span class="sd">        11</span>
+<span class="sd">        &gt;&gt;&gt; x.argmin(0)</span>
+<span class="sd">        matrix([[2, 2, 2, 2]])</span>
+<span class="sd">        &gt;&gt;&gt; x.argmin(1)</span>
+<span class="sd">        matrix([[3],</span>
+<span class="sd">                [3],</span>
+<span class="sd">                [3]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">_align</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.ptp"><a class="viewcode-back" href="../../../index.html#numpy.matrix.ptp">[docs]</a>    <span class="k">def</span> <span class="nf">ptp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Peak-to-peak (maximum - minimum) value along the given axis.</span>
+
+<span class="sd">        Refer to `numpy.ptp` for full documentation.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.ptp</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Same as `ndarray.ptp`, except, where that would return an `ndarray` object,</span>
+<span class="sd">        this returns a `matrix` object.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.ptp()</span>
+<span class="sd">        11</span>
+<span class="sd">        &gt;&gt;&gt; x.ptp(0)</span>
+<span class="sd">        matrix([[8, 8, 8, 8]])</span>
+<span class="sd">        &gt;&gt;&gt; x.ptp(1)</span>
+<span class="sd">        matrix([[3],</span>
+<span class="sd">                [3],</span>
+<span class="sd">                [3]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">ptp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">_align</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="matrix.getI"><a class="viewcode-back" href="../../../index.html#numpy.matrix.getI">[docs]</a>    <span class="k">def</span> <span class="nf">getI</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the (multiplicative) inverse of invertible `self`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ret : matrix object</span>
+<span class="sd">            If `self` is non-singular, `ret` is such that ``ret * self`` ==</span>
+<span class="sd">            ``self * ret`` == ``np.matrix(np.eye(self[0,:].size)`` all return</span>
+<span class="sd">            ``True``.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        numpy.linalg.LinAlgError: Singular matrix</span>
+<span class="sd">            If `self` is singular.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        linalg.inv</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; m = np.matrix(&#39;[1, 2; 3, 4]&#39;); m</span>
+<span class="sd">        matrix([[1, 2],</span>
+<span class="sd">                [3, 4]])</span>
+<span class="sd">        &gt;&gt;&gt; m.getI()</span>
+<span class="sd">        matrix([[-2. ,  1. ],</span>
+<span class="sd">                [ 1.5, -0.5]])</span>
+<span class="sd">        &gt;&gt;&gt; m.getI() * m</span>
+<span class="sd">        matrix([[ 1.,  0.],</span>
+<span class="sd">                [ 0.,  1.]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">M</span> <span class="o">==</span> <span class="n">N</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">numpy.dual</span> <span class="kn">import</span> <span class="n">inv</span> <span class="k">as</span> <span class="n">func</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">numpy.dual</span> <span class="kn">import</span> <span class="n">pinv</span> <span class="k">as</span> <span class="n">func</span>
+        <span class="k">return</span> <span class="n">asmatrix</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="matrix.getA"><a class="viewcode-back" href="../../../index.html#numpy.matrix.getA">[docs]</a>    <span class="k">def</span> <span class="nf">getA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return `self` as an `ndarray` object.</span>
+
+<span class="sd">        Equivalent to ``np.asarray(self)``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ret : ndarray</span>
+<span class="sd">            `self` as an `ndarray`</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.getA()</span>
+<span class="sd">        array([[ 0,  1,  2,  3],</span>
+<span class="sd">               [ 4,  5,  6,  7],</span>
+<span class="sd">               [ 8,  9, 10, 11]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__array__</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="matrix.getA1"><a class="viewcode-back" href="../../../index.html#numpy.matrix.getA1">[docs]</a>    <span class="k">def</span> <span class="nf">getA1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return `self` as a flattened `ndarray`.</span>
+
+<span class="sd">        Equivalent to ``np.asarray(x).ravel()``</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ret : ndarray</span>
+<span class="sd">            `self`, 1-D, as an `ndarray`</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4))); x</span>
+<span class="sd">        matrix([[ 0,  1,  2,  3],</span>
+<span class="sd">                [ 4,  5,  6,  7],</span>
+<span class="sd">                [ 8,  9, 10, 11]])</span>
+<span class="sd">        &gt;&gt;&gt; x.getA1()</span>
+<span class="sd">        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__array__</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="matrix.getT"><a class="viewcode-back" href="../../../index.html#numpy.matrix.getT">[docs]</a>    <span class="k">def</span> <span class="nf">getT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the transpose of the matrix.</span>
+
+<span class="sd">        Does *not* conjugate!  For the complex conjugate transpose, use ``.H``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ret : matrix object</span>
+<span class="sd">            The (non-conjugated) transpose of the matrix.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        transpose, getH</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; m = np.matrix(&#39;[1, 2; 3, 4]&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; m</span>
+<span class="sd">        matrix([[1, 2],</span>
+<span class="sd">                [3, 4]])</span>
+<span class="sd">        &gt;&gt;&gt; m.getT()</span>
+<span class="sd">        matrix([[1, 3],</span>
+<span class="sd">                [2, 4]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="matrix.getH"><a class="viewcode-back" href="../../../index.html#numpy.matrix.getH">[docs]</a>    <span class="k">def</span> <span class="nf">getH</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the (complex) conjugate transpose of `self`.</span>
+
+<span class="sd">        Equivalent to ``np.transpose(self)`` if `self` is real-valued.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ret : matrix object</span>
+<span class="sd">            complex conjugate transpose of `self`</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; x = np.matrix(np.arange(12).reshape((3,4)))</span>
+<span class="sd">        &gt;&gt;&gt; z = x - 1j*x; z</span>
+<span class="sd">        matrix([[  0. +0.j,   1. -1.j,   2. -2.j,   3. -3.j],</span>
+<span class="sd">                [  4. -4.j,   5. -5.j,   6. -6.j,   7. -7.j],</span>
+<span class="sd">                [  8. -8.j,   9. -9.j,  10.-10.j,  11.-11.j]])</span>
+<span class="sd">        &gt;&gt;&gt; z.getH()</span>
+<span class="sd">        matrix([[  0. +0.j,   4. +4.j,   8. +8.j],</span>
+<span class="sd">                [  1. +1.j,   5. +5.j,   9. +9.j],</span>
+<span class="sd">                [  2. +2.j,   6. +6.j,  10.+10.j],</span>
+<span class="sd">                [  3. +3.j,   7. +7.j,  11.+11.j]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">N</span><span class="o">.</span><span class="n">complexfloating</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">conjugate</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+</div>
+    <span class="n">T</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">getT</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">getA</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">A1</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">getA1</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">getH</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">getI</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+</div>
+<span class="k">def</span> <span class="nf">_from_string</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">gdict</span><span class="p">,</span> <span class="n">ldict</span><span class="p">):</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
+    <span class="n">rowtup</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">trow</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">newrow</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">trow</span><span class="p">:</span>
+            <span class="n">newrow</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+        <span class="n">trow</span> <span class="o">=</span> <span class="n">newrow</span>
+        <span class="n">coltup</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">trow</span><span class="p">:</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">thismat</span> <span class="o">=</span> <span class="n">ldict</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">thismat</span> <span class="o">=</span> <span class="n">gdict</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> not found&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,))</span>
+
+            <span class="n">coltup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thismat</span><span class="p">)</span>
+        <span class="n">rowtup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">concatenate</span><span class="p">(</span><span class="n">coltup</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">concatenate</span><span class="p">(</span><span class="n">rowtup</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="bmat"><a class="viewcode-back" href="../../../index.html#numpy.bmat">[docs]</a><span class="k">def</span> <span class="nf">bmat</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ldict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gdict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build a matrix object from a string, nested sequence, or array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : str or array_like</span>
+<span class="sd">        Input data.  Names of variables in the current scope may be</span>
+<span class="sd">        referenced, even if `obj` is a string.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : matrix</span>
+<span class="sd">        Returns a matrix object, which is a specialized 2-D array.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    matrix</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; A = np.mat(&#39;1 1; 1 1&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; B = np.mat(&#39;2 2; 2 2&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; C = np.mat(&#39;3 4; 5 6&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; D = np.mat(&#39;7 8; 9 0&#39;)</span>
+
+<span class="sd">    All the following expressions construct the same block matrix:</span>
+
+<span class="sd">    &gt;&gt;&gt; np.bmat([[A, B], [C, D]])</span>
+<span class="sd">    matrix([[1, 1, 2, 2],</span>
+<span class="sd">            [1, 1, 2, 2],</span>
+<span class="sd">            [3, 4, 7, 8],</span>
+<span class="sd">            [5, 6, 9, 0]])</span>
+<span class="sd">    &gt;&gt;&gt; np.bmat(np.r_[np.c_[A, B], np.c_[C, D]])</span>
+<span class="sd">    matrix([[1, 1, 2, 2],</span>
+<span class="sd">            [1, 1, 2, 2],</span>
+<span class="sd">            [3, 4, 7, 8],</span>
+<span class="sd">            [5, 6, 9, 0]])</span>
+<span class="sd">    &gt;&gt;&gt; np.bmat(&#39;A,B; C,D&#39;)</span>
+<span class="sd">    matrix([[1, 1, 2, 2],</span>
+<span class="sd">            [1, 1, 2, 2],</span>
+<span class="sd">            [3, 4, 7, 8],</span>
+<span class="sd">            [5, 6, 9, 0]])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">gdict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># get previous frame</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_back</span>
+            <span class="n">glob_dict</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_globals</span>
+            <span class="n">loc_dict</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_locals</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">glob_dict</span> <span class="o">=</span> <span class="n">gdict</span>
+            <span class="n">loc_dict</span> <span class="o">=</span> <span class="n">ldict</span>
+
+        <span class="k">return</span> <span class="n">matrix</span><span class="p">(</span><span class="n">_from_string</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">glob_dict</span><span class="p">,</span> <span class="n">loc_dict</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="c"># [[A,B],[C,D]]</span>
+        <span class="n">arr_rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>  <span class="c"># not 2-d</span>
+                <span class="k">return</span> <span class="n">matrix</span><span class="p">(</span><span class="n">concatenate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arr_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">concatenate</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">matrix</span><span class="p">(</span><span class="n">concatenate</span><span class="p">(</span><span class="n">arr_rows</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">N</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">matrix</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</div>
+<span class="n">mat</span> <span class="o">=</span> <span class="n">asmatrix</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Rich Adams.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>numpy.core.function_base &mdash; code-lab.opencv 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="code-lab.opencv 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="numpy" href="../../numpy.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">code-lab.opencv 1.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../numpy.html" accesskey="U">numpy</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for numpy.core.function_base</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;logspace&#39;</span><span class="p">,</span> <span class="s">&#39;linspace&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">numeric</span> <span class="k">as</span> <span class="n">_nx</span>
+<span class="kn">from</span> <span class="nn">.numeric</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">result_type</span>
+
+
+<div class="viewcode-block" id="linspace"><a class="viewcode-back" href="../../../index.html#numpy.linspace">[docs]</a><span class="k">def</span> <span class="nf">linspace</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">retstep</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return evenly spaced numbers over a specified interval.</span>
+
+<span class="sd">    Returns `num` evenly spaced samples, calculated over the</span>
+<span class="sd">    interval [`start`, `stop` ].</span>
+
+<span class="sd">    The endpoint of the interval can optionally be excluded.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start : scalar</span>
+<span class="sd">        The starting value of the sequence.</span>
+<span class="sd">    stop : scalar</span>
+<span class="sd">        The end value of the sequence, unless `endpoint` is set to False.</span>
+<span class="sd">        In that case, the sequence consists of all but the last of ``num + 1``</span>
+<span class="sd">        evenly spaced samples, so that `stop` is excluded.  Note that the step</span>
+<span class="sd">        size changes when `endpoint` is False.</span>
+<span class="sd">    num : int, optional</span>
+<span class="sd">        Number of samples to generate. Default is 50.</span>
+<span class="sd">    endpoint : bool, optional</span>
+<span class="sd">        If True, `stop` is the last sample. Otherwise, it is not included.</span>
+<span class="sd">        Default is True.</span>
+<span class="sd">    retstep : bool, optional</span>
+<span class="sd">        If True, return (`samples`, `step`), where `step` is the spacing</span>
+<span class="sd">        between samples.</span>
+<span class="sd">    dtype : dtype</span>
+<span class="sd">        The type of the output array.  If `dtype` is not given, infer the data</span>
+<span class="sd">        type from the other input arguments.</span>
+
+<span class="sd">        .. versionadded:: 1.9.0</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    samples : ndarray</span>
+<span class="sd">        There are `num` equally spaced samples in the closed interval</span>
+<span class="sd">        ``[start, stop]`` or the half-open interval ``[start, stop)``</span>
+<span class="sd">        (depending on whether `endpoint` is True or False).</span>
+<span class="sd">    step : float (only if `retstep` is True)</span>
+<span class="sd">        Size of spacing between samples.</span>
+
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    arange : Similar to `linspace`, but uses a step size (instead of the</span>
+<span class="sd">             number of samples).</span>
+<span class="sd">    logspace : Samples uniformly distributed in log space.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; np.linspace(2.0, 3.0, num=5)</span>
+<span class="sd">        array([ 2.  ,  2.25,  2.5 ,  2.75,  3.  ])</span>
+<span class="sd">    &gt;&gt;&gt; np.linspace(2.0, 3.0, num=5, endpoint=False)</span>
+<span class="sd">        array([ 2. ,  2.2,  2.4,  2.6,  2.8])</span>
+<span class="sd">    &gt;&gt;&gt; np.linspace(2.0, 3.0, num=5, retstep=True)</span>
+<span class="sd">        (array([ 2.  ,  2.25,  2.5 ,  2.75,  3.  ]), 0.25)</span>
+
+<span class="sd">    Graphical illustration:</span>
+
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; N = 8</span>
+<span class="sd">    &gt;&gt;&gt; y = np.zeros(N)</span>
+<span class="sd">    &gt;&gt;&gt; x1 = np.linspace(0, 10, N, endpoint=True)</span>
+<span class="sd">    &gt;&gt;&gt; x2 = np.linspace(0, 10, N, endpoint=False)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x1, y, &#39;o&#39;)</span>
+<span class="sd">    [&lt;matplotlib.lines.Line2D object at 0x...&gt;]</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x2, y + 0.5, &#39;o&#39;)</span>
+<span class="sd">    [&lt;matplotlib.lines.Line2D object at 0x...&gt;]</span>
+<span class="sd">    &gt;&gt;&gt; plt.ylim([-0.5, 1])</span>
+<span class="sd">    (-0.5, 1)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+
+    <span class="c"># Convert float/complex array scalars to float, gh-3504 </span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">start</span> <span class="o">*</span> <span class="mf">1.</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="n">stop</span> <span class="o">*</span> <span class="mf">1.</span>
+
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">result_type</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">endpoint</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">array</span><span class="p">([</span><span class="n">start</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="n">stop</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">((</span><span class="n">num</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">_nx</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="n">start</span>
+        <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">stop</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="n">stop</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">_nx</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="n">start</span>
+    <span class="k">if</span> <span class="n">retstep</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">),</span> <span class="n">step</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="logspace"><a class="viewcode-back" href="../../../index.html#numpy.logspace">[docs]</a><span class="k">def</span> <span class="nf">logspace</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return numbers spaced evenly on a log scale.</span>
+
+<span class="sd">    In linear space, the sequence starts at ``base ** start``</span>
+<span class="sd">    (`base` to the power of `start`) and ends with ``base ** stop``</span>
+<span class="sd">    (see `endpoint` below).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start : float</span>
+<span class="sd">        ``base ** start`` is the starting value of the sequence.</span>
+<span class="sd">    stop : float</span>
+<span class="sd">        ``base ** stop`` is the final value of the sequence, unless `endpoint`</span>
+<span class="sd">        is False.  In that case, ``num + 1`` values are spaced over the</span>
+<span class="sd">        interval in log-space, of which all but the last (a sequence of</span>
+<span class="sd">        length ``num``) are returned.</span>
+<span class="sd">    num : integer, optional</span>
+<span class="sd">        Number of samples to generate.  Default is 50.</span>
+<span class="sd">    endpoint : boolean, optional</span>
+<span class="sd">        If true, `stop` is the last sample. Otherwise, it is not included.</span>
+<span class="sd">        Default is True.</span>
+<span class="sd">    base : float, optional</span>
+<span class="sd">        The base of the log space. The step size between the elements in</span>
+<span class="sd">        ``ln(samples) / ln(base)`` (or ``log_base(samples)``) is uniform.</span>
+<span class="sd">        Default is 10.0.</span>
+<span class="sd">    dtype : dtype</span>
+<span class="sd">        The type of the output array.  If `dtype` is not given, infer the data</span>
+<span class="sd">        type from the other input arguments.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    samples : ndarray</span>
+<span class="sd">        `num` samples, equally spaced on a log scale.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    arange : Similar to linspace, with the step size specified instead of the</span>
+<span class="sd">             number of samples. Note that, when used with a float endpoint, the</span>
+<span class="sd">             endpoint may or may not be included.</span>
+<span class="sd">    linspace : Similar to logspace, but with the samples uniformly distributed</span>
+<span class="sd">               in linear space, instead of log space.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Logspace is equivalent to the code</span>
+
+<span class="sd">    &gt;&gt;&gt; y = np.linspace(start, stop, num=num, endpoint=endpoint)</span>
+<span class="sd">    ... # doctest: +SKIP</span>
+<span class="sd">    &gt;&gt;&gt; power(base, y).astype(dtype)</span>
+<span class="sd">    ... # doctest: +SKIP</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; np.logspace(2.0, 3.0, num=4)</span>
+<span class="sd">        array([  100.        ,   215.443469  ,   464.15888336,  1000.        ])</span>
+<span class="sd">    &gt;&gt;&gt; np.logspace(2.0, 3.0, num=4, endpoint=False)</span>
+<span class="sd">        array([ 100.        ,  177.827941  ,  316.22776602,  562.34132519])</span>
+<span class="sd">    &gt;&gt;&gt; np.logspace(2.0, 3.0, num=4, base=2.0)</span>
+<span class="sd">        array([ 4.        ,  5.0396842 ,  6.34960421,  8.        ])</span>
+
+<span class="sd">    Graphical illustration:</span>
+
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; N = 10</span>
+<span class="sd">    &gt;&gt;&gt; x1 = np.logspace(0.1, 1, N, endpoint=True)</span>
+<span class="sd">    &gt;&gt;&gt; x2 = np.logspace(0.1, 1, N, endpoint=False)</span>
+<span class="sd">    &gt;&gt;&gt; y = np.zeros(N)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x1, y, &#39;o&#39;)</span>
+<span class="sd">    [&lt;matplotlib.lines.Line2D object at 0x...&gt;]</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x2, y + 0.5, &#39;o&#39;)</span>
+<span class="sd">    [&lt;matplotlib.lines.Line2D object at 0x...&gt;]</span>
+<span class="sd">    &gt;&gt;&gt; plt.ylim([-0.5, 1])</span>
+<span class="sd">    (-0.5, 1)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_nx</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_nx</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Rich Adams.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
