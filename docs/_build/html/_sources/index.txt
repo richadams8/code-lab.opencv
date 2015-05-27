@@ -21,10 +21,10 @@ Examples
 ------------------
 
 ..  toctree::
-    :glob:
     :maxdepth: 1
 
-    examples/*
+    examples/openandshowfile
+    examples/usingsubplots
 
 
 Indices and tables
