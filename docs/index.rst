@@ -3,15 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to code-lab.opencv's documentation!
+CV2 Python Documentation
 ===========================================
 
 Contents:
 
-.. toctree::
-   :maxdepth: 2
+..  toctree::
+    :maxdepth: 2
 
-  cv2.rst
+    cv2_io
+    cv2
 
 Indices and tables
 ==================
