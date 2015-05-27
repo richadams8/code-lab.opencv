@@ -25,7 +25,8 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="code-lab.opencv 1.0 documentation" href="../index.html" />
-    <link rel="prev" title="List of All CV2 Members" href="../cv2.html" />
+    <link rel="next" title="Using Subplots to Display Multiple Images" href="usingsubplots.html" />
+    <link rel="prev" title="List of All CV2 Members" href="../sections/cv2.html" />
    
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
@@ -42,7 +43,10 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../cv2.html" title="List of All CV2 Members"
+          <a href="usingsubplots.html" title="Using Subplots to Display Multiple Images"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../sections/cv2.html" title="List of All CV2 Members"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">code-lab.opencv 1.0 documentation</a> &raquo;</li> 
       </ul>
@@ -60,8 +64,10 @@
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
 
-<span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s">&quot;someimg.jpg&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">))</span>
+<span class="n">img_bgr</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s">&quot;someimg.jpg&quot;</span><span class="p">)</span>
+<span class="c"># OpenCV reads in image in BGR so we have to convert it to RGB for pyplot</span>
+<span class="n">img_rgb</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img_rgb</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -74,8 +80,11 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="../cv2.html"
+  <p class="topless"><a href="../sections/cv2.html"
                         title="previous chapter">List of All CV2 Members</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="usingsubplots.html"
+                        title="next chapter">Using Subplots to Display Multiple Images</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">

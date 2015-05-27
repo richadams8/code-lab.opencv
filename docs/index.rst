@@ -11,14 +11,17 @@ means it plays very nicely with the scipy stack.
 
 Contents:
 
-..  toctree::
+.. toctree::
     :maxdepth: 2
 
-    cv2_io
-    cv2
+    sections/cv2_io
+    sections/cv2_display
+    sections/cv2
 
 Examples
 ------------------
+
+I also recommend looking at the tutorials `here<http://opencv-python-tutroals.readthedocs.org/en/latest/index.html>`.
 
 ..  toctree::
     :maxdepth: 1

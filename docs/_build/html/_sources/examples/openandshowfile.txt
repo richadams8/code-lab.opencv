@@ -7,6 +7,8 @@ Example of how to open and display an image::
   import cv2
   from matplotlib import pyplot as plt
 
-  img = cv2.imread("someimg.jpg")
-  plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+  img_bgr = cv2.imread("someimg.jpg")
+  # OpenCV reads in image in BGR so we have to convert it to RGB for pyplot
+  img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+  plt.imshow(img_rgb)
   plt.show()
