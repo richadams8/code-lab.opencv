@@ -5,6 +5,8 @@
 This repository also contains some handy [documentation](https://rawgit.com/richadams8/code-lab.opencv/master/docs/_build/html/index.html)
 for OpenCV's Python bindings.  You can also find the python binding in [OpenCV's official documentation](http://docs.opencv.org/).
 
+There are also a number of useful OpenCV Python tutorials [here](http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_tutorials.html)
+
 ## Software Required for this Lab
 - [Python 2.7](https://www.python.org/downloads/release/python-2710/)
 - [OpenCV 2.4.11](http://opencv.org/downloads.html)

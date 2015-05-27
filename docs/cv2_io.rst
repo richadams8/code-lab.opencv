@@ -1,5 +1,5 @@
 ========================
-OpenCV Python IO
+CV2 IO
 ========================
 
 ..  automodule:: cv2
