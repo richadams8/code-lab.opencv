@@ -1,1 +1,22 @@
-__author__ = 'Ugli'
+__author__ = 'Rich Adams'
+
+import numpy as np
+import cv2
+from matplotlib import pyplot as plt
+
+img_bgr = cv2.imread("../samples/polycom_simple.jpg")
+img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+
+plt.figure(1)
+
+plt.subplot(121)
+plt.imshow(img_bgr)
+plt.axis('off')
+plt.title("Without B&R Channel Swapping")
+
+plt.subplot(122)
+plt.imshow(img_rgb)
+plt.axis('off')
+plt.title("With B&R Channel Swapping")
+
+plt.show()
