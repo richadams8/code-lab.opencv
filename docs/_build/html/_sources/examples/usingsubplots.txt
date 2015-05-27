@@ -1,5 +1,5 @@
-Opening and Displaying an Image
-================================
+Using Subplots to Display Multiple Images
+==========================================
 
 Example of how to use subplots to display multiple images::
 
