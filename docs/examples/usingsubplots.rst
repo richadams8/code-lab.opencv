@@ -1,5 +1,5 @@
-Using Subplots to Display Multiple Images
-==========================================
+Using Subplots to Display Multiple cv2 Images
+==============================================
 
 Example of how to use subplots to display multiple images::
 

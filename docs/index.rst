@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-CV2 Python Documentation
+cv2 Python Documentation
 ===========================================
 
 OpenCV uses :class:`numpy.ndarray<numpy:numpy.ndarray>` to store images, which

@@ -1,7 +1,6 @@
 ========================
-CV2 Display
+cv2 Display
 ========================
 
 ..  automodule:: cv2
-    :noindex:
     :members: imshow,
