@@ -292,6 +292,6 @@ texinfo_documents = [
 intersphinx_mapping = {
   'python': ('https://docs.python.org/', None),
   'opencv': ('http://docs.opencv.org/', None),
-  'scipy': ('http://docs.scipy.org/', None),
+  'numpy': ('http://docs.scipy.org/doc/numpy/', None),
   'matplotlib': ('http://matplotlib.org/', None)
 }
