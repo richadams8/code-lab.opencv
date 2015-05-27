@@ -6,7 +6,7 @@
 CV2 Python Documentation
 ===========================================
 
-OpenCV uses
+OpenCV uses :class:`numpy.ndarray<numpy:numpy.ndarray>` to store images.
 
 Contents:
 
@@ -15,6 +15,15 @@ Contents:
 
     cv2_io
     cv2
+
+Examples
+==================
+
+..  toctree::
+    :maxdepth: 1
+
+    examples/openandshowfile
+
 
 Indices and tables
 ==================
