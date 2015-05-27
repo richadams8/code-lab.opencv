@@ -15,7 +15,7 @@ There are also a number of useful OpenCV Python tutorials
 
 ## Python Packages Required for this Lab
 - <a href=http://docs.scipy.org/doc/numpy-dev/index.html target="_blank">numpy</a>: Scientific computing pacakge.
-- <a href=http://matplotlib.org/ target="_blank">matplotlib</a>: Plotting package.
+- <a href=http://matplotlib.org/api/pyplot_summary.html target="_blank">matplotlib.pyplot</a>: Plotting package.
 - <a href=https://rawgit.com/richadams8/code-lab.opencv/master/docs/_build/html/index.html target="_blank">cv2</a>: OpenCV's python package.
 
 
