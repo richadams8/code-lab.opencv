@@ -11,9 +11,6 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: numpy
-    :members:
-
 .. automodule:: cv2
     :members:
     :undoc-members:
