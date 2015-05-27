@@ -291,5 +291,7 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
   'python': ('https://docs.python.org/', None),
-  'opencv': ('http://docs.opencv.org/', None)
+  'opencv': ('http://docs.opencv.org/', None),
+  'scipy': ('http://docs.scipy.org/', None),
+  'matplotlib': ('http://matplotlib.org/', None)
 }

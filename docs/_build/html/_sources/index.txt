@@ -6,6 +6,8 @@
 CV2 Python Documentation
 ===========================================
 
+OpenCV uses
+
 Contents:
 
 ..  toctree::
