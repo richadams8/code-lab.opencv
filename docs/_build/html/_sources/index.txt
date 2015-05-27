@@ -6,7 +6,8 @@
 CV2 Python Documentation
 ===========================================
 
-OpenCV uses :class:`numpy.ndarray<numpy:numpy.ndarray>` to store images.
+OpenCV uses :class:`numpy.ndarray<numpy:numpy.ndarray>` to store images, which
+means it plays very nicely with the scipy stack.
 
 Contents:
 
@@ -17,7 +18,7 @@ Contents:
     cv2
 
 Examples
-==================
+------------------
 
 ..  toctree::
     :maxdepth: 1
@@ -26,7 +27,7 @@ Examples
 
 
 Indices and tables
-==================
+-------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
