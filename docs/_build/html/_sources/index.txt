@@ -9,26 +9,11 @@ cv2 Python Documentation
 OpenCV uses :class:`numpy.ndarray<numpy:numpy.ndarray>` to store images, which
 means it plays very nicely with the scipy stack.
 
-Sections
------------------
-
 .. toctree::
     :maxdepth: 2
 
-    sections/cv2_io
-    sections/cv2_display
-    sections/cv2
-
-Examples
-------------------
-
-I also recommend looking at `these tutorials <http://opencv-python-tutroals.readthedocs.org/en/latest/>`_.
-
-..  toctree::
-    :maxdepth: 1
-
-    examples/openandshowfile
-    examples/usingsubplots
+    documentation/documentation
+    examples/examples
 
 
 Indices and tables
