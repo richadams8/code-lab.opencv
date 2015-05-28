@@ -1,12 +1,9 @@
 cv2 Display
 ------------------------
 
+Mostly for this lab we will be using the `matplotlib.pyplot <http://matplotlib.org/api/pyplot_api.html>`_
+
 ..  automodule:: cv2
     :members: imshow, namedWindow, destroyWindow, destroyAllWindows
-
-pyplotlib
-------------------------
-.. automodule:: matplotlib.pyplot
-   :members:
 
 
