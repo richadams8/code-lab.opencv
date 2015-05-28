@@ -1,5 +1,5 @@
 Opening and Displaying a cv2 Image
-===================================
+------------------------------------
 
 Example of how to open and display an image::
 
