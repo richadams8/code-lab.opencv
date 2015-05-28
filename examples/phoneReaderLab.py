@@ -3,6 +3,7 @@ __author__ = 'Rich Adams'
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
+from matplotlib.widgets import Slider
 
 class phoneReaderLab:
 
@@ -13,8 +14,8 @@ class phoneReaderLab:
     self.sigmaSpace = 10
 
     # Canny Parameters
-    self.cannyMin = 100
-    self.cannyMax = 150
+    self.cannyMin = 50
+    self.cannyMax = 100
 
     # Images
     self.img_bgr = None
@@ -22,6 +23,11 @@ class phoneReaderLab:
     self.img_gray = None
     self.img_smoothed = None
     self.img_edge = None
+    self.img_contour = None
+
+    # Features
+    self.contours = None
+    self.screenContour = None
 
     # Plots
     self.f = None
@@ -29,6 +35,14 @@ class phoneReaderLab:
     self.ax2 = None
     self.ax3 = None
     self.ax4 = None
+
+    # Controls
+    self.slideSmoothSize = None
+    self.slideSigmaColor = None
+    self.slideSigmaSpace = None
+    self.slideCannyMin = None
+    self.slideCannyMax = None
+
 
     self.initDisplay()
     self.readImage(imageLocation)
@@ -48,16 +62,24 @@ class phoneReaderLab:
     self.img_smoothed = \
       cv2.bilateralFilter(self.img_gray, self.smoothSize, self.sigmaColor, self.sigmaColor)
     self.img_edge = cv2.Canny(self.img_smoothed, self.cannyMin, self.cannyMax)
+    (self.contours, _) = cv2.findContours(self.img_edge.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    self.contours = sorted(self.contours, key=cv2.contourArea, reverse=True)[:20]
+    self.img_contour = self.img_rgb.copy()
+    cv2.drawContours(self.img_contour, self.contours, -1, (0, 255, 0), 3)
 
     # Set the images to their displays
     self.ax2.imshow(self.img_gray, cmap='gray', aspect='auto')
     self.ax3.imshow(self.img_smoothed, cmap='gray', aspect='auto')
     self.ax4.imshow(self.img_edge, cmap='gray', aspect='auto')
+    self.ax1.imshow(self.img_contour, aspect='auto')
 
   def initDisplay(self):
     # Display images
     self.f, ((self.ax1, self.ax2), (self.ax3, self.ax4)) = \
       plt.subplots(2, 2, subplot_kw=dict(xticks=[], yticks=[]))
+    axSliderCannyMin = plt.axes([0.25, 0.1, 0.65, 0.03])
+    self.slideCannyMin = Slider(axSliderCannyMin, 'Canny Min', 0, 300, self.cannyMin)
+    self.slideCannyMin.on_changed(self.__updateCannyMin)
     plt.tight_layout()
 
   def show(self):
@@ -65,6 +87,11 @@ class phoneReaderLab:
 
   def draw(self):
     plt.draw()
+
+  def __updateCannyMin(self, val):
+    self.cannyMin = val
+    self.processImage()
+    self.draw()
 
 if __name__ == "__main__":
   lab = phoneReaderLab("../samples/polycom_simple.jpg")
