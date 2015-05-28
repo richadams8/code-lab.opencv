@@ -10,7 +10,6 @@ OpenCV uses :class:`numpy.ndarray<numpy:numpy.ndarray>` to store images, which
 means it plays very nicely with the scipy stack.
 
 .. toctree::
-    :maxdepth: 2
 
     documentation/documentation
     examples/examples
