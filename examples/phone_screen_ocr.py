@@ -57,5 +57,4 @@ os.system(command)
 text = open(textoutput + ".txt")
 print text.read()
 
-
 plt.show()
